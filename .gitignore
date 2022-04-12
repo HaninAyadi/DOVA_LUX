@@ -79,6 +79,7 @@ target/
 
 # Jupyter Notebook
 notebooks/.ipynb_checkpoints
+notebooks/tweets_collection.ipynb
 
 # IPython
 profile_default/
