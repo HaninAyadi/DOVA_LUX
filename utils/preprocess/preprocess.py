@@ -36,7 +36,7 @@ def tfidf_transform(mat):
     docs_using_terms = np.count_nonzero(mat, axis=0)
     idf_scores = np.log(mat.shape[1] / docs_using_terms)
 
-    # compuite tfidf scores
+    # compute tfidf scores
     tfidf_mat = normalized_mat * idf_scores
     return tfidf_mat
 
@@ -76,6 +76,7 @@ class Preprocess:
             return contractions_fix(tweet)
         else:
             return (tweet)
+
 
     def replace_hashtags_URL_USER(self, tweet, mode_URL="keep",
                                   mode_Mentions="keep", mode_Hashtag="keep"):
@@ -166,11 +167,14 @@ class Preprocess:
 
         """
 
-        # replace type 1 words
-        tweet = WordLists.TYPE1_WORDS.sub(Constants.TYPE1, tweet)
+        # replace long covid words
+        tweet = WordLists.LONGCOVID_WORDS.sub(Constants.LONGCOVID, tweet)
 
-        # replace type 2 words
-        tweet = WordLists.TYPE2_WORDS.sub(Constants.TYPE2, tweet)
+        # replace covid words
+        tweet = WordLists.COVID_WORDS.sub(Constants.COVID, tweet)
+
+        # replace long term words
+        tweet = WordLists.LONGTERM_WORDS.sub(Constants.LONGTERM, tweet)
 
         return tweet
 
