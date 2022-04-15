@@ -355,7 +355,7 @@ class Preprocess:
             return [word for word in tweet if not word.isdigit()]
 
     def remove_stopwords(self, tweet, include_personal_words=False, include_negations=False,
-                         list_stopwords_manual=False):
+                         list_stopwords_manual=[]):
         """
             Remove stop words from list of tokenized words
 
@@ -382,31 +382,29 @@ class Preprocess:
         new_tweet = []
 
         # manual list of stopwords provided
-        if list_stopwords_manual != False:
+        if len(list_stopwords_manual) > 0:
             return [word for word in tweet if word not in list_stopwords_manual]
 
         else:
             # english language
             if self.lang == "english":
+
                 for word in tweet:
+
                     if include_personal_words:
                         if include_negations:
-                            if word not in Grammar.STOPWORDS_NO_PERSONAL_EN or word in Grammar.WHITELIST_EN:  # TODO maybe add manually more stopwords
+                            if (word not in Grammar.STOPWORDS_NO_PERSONAL_EN and word not in Grammar.STOPWORDS_CUSTOM) or word in Grammar.WHITELIST_EN:
                                 new_tweet.append(word)
                         else:
-                            if word not in Grammar.STOPWORDS_NO_PERSONAL_EN:  # TODO maybe add manually more stopwords
+                            if word not in Grammar.STOPWORDS_NO_PERSONAL_EN and word not in Grammar.STOPWORDS_CUSTOM:
                                 new_tweet.append(word)
                     else:
                         if include_negations:
-                            if word not in Grammar.STOPWORDS_EN or word in Grammar.WHITELIST_EN:  # TODO maybe add manually more stopwords
+                            if (word not in Grammar.STOPWORDS_EN and word not in Grammar.STOPWORDS_CUSTOM) or word in Grammar.WHITELIST_EN:
                                 new_tweet.append(word)
                         else:
-                            if word not in Grammar.STOPWORDS_EN:  # TODO maybe add manually more stopwords
+                            if word not in Grammar.STOPWORDS_EN and word not in Grammar.STOPWORDS_CUSTOM:
                                 new_tweet.append(word)
-
-                    if word in Grammar.STOPWORDS_CUSTOM:
-                        new_tweet.remove(word)
-
                 return new_tweet
 
             # french language
