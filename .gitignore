@@ -1,5 +1,6 @@
 # Data
 data/
+*.pkl
 
 # Byte-compiled / optimized / DLL files
 utils/preprocess/__pycache__/
