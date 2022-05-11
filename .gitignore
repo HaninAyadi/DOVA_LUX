@@ -1,6 +1,16 @@
 # Data
 data/
+locations temp data/
 *.pkl
+*.csv
+
+# Models and other pretrained files
+*.model
+*.bin
+*.kv
+*.npy
+
+
 
 # Byte-compiled / optimized / DLL files
 utils/preprocess/__pycache__/
