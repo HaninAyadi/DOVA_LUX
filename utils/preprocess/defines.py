@@ -63,7 +63,7 @@ class Grammar:
 
 class WordLists:
     longcovid = ["#longcovid", "#long_covid", "#covidlong", "#covid_long", "long covid", "long-covid", "long_covid",
-                 "covid long", "covid_long", "covid_long", "mitcoronaleben", "langzeitcovid", "koronaoire"]
+                 "covid long", "covid_long", "covid-long", "mitcoronaleben", "langzeitcovid", "koronaoire"]
     covid = ["covid-nineteen", "corona"]
     longterm = ["long-term"]
     LONGCOVID_WORDS = re.compile(u"|".join(longcovid))

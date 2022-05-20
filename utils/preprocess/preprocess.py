@@ -77,7 +77,6 @@ class Preprocess:
         else:
             return (tweet)
 
-
     def replace_hashtags_URL_USER(self, tweet, mode_URL="keep",
                                   mode_Mentions="keep", mode_Hashtag="keep"):
         """

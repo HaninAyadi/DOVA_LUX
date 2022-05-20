@@ -16,7 +16,7 @@ contractions_dict = {
     "didn't": "did not",
     "doesn't": "does not",
     "don't": "do not",
-    "f*ing" : "fucking",
+    "f*ing": "fucking",
     "hadn't": "had not",
     "hadn't've": "had not have",
     "hasn't": "has not",
@@ -50,7 +50,7 @@ contractions_dict = {
     "it's": "it is",
     "let's": "let us",
     "ma'am": "madam",
-    "m8" : "might",
+    "m8": "might",
     "mayn't": "may not",
     "might've": "might have",
     "mightn't": "might not",
@@ -136,10 +136,8 @@ contractions_dict = {
     "somethin'": "something"
 }
 
-
 contractions_re_keys = [x.replace("'", "['’]") for x in contractions_dict]
 contractions_dict.update({k.replace("'", "’"): v for k, v in contractions_dict.items()})
-
 
 leftovers_dict = {
     "'all": '',
@@ -185,7 +183,9 @@ def _replacer(dc):
         if v in dc:
             return dc[v]
         return v
+
     return replace
+
 
 slang_re = re.compile(r"\b" + r"\b|\b".join(sorted(list(slang) +
                                                    list(unsafe_dict))) + r"\b", re.IGNORECASE)
