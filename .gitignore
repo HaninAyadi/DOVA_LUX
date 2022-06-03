@@ -1,8 +1,20 @@
 # Data
 data/
+locations temp data/
+*.pkl
+*.csv
+
+# Models and other pretrained files
+*.model
+*.bin
+*.kv
+*.npy
+
+
 
 # Byte-compiled / optimized / DLL files
 utils/preprocess/__pycache__/
+utils/preprocess/.idea/
 *.py[cod]
 *$py.class
 
@@ -80,6 +92,8 @@ target/
 # Jupyter Notebook
 notebooks/.ipynb_checkpoints
 notebooks/tweets_collection.ipynb
+notebooks/data_concatenation.ipynb
+
 
 # IPython
 profile_default/
