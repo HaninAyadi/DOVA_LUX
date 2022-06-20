@@ -11,12 +11,13 @@ from wordcloud import WordCloud
 from yellowbrick.text import TSNEVisualizer
 import matplotlib.pyplot as plt
 
+plt.rcParams["figure.figsize"] = (10, 6)
+
 
 def create_wordcloud(data, title=None):
     wordcloud = WordCloud(width=500, height=500,
                           background_color='white',
-                          min_font_size=15
-                          ).generate(" ".join(data))
+                          min_font_size=15).generate(" ".join(data))
     plt.figure(figsize=(5, 5), facecolor=None)
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis("off")
@@ -26,6 +27,6 @@ def create_wordcloud(data, title=None):
 
 
 def tsne_viz(X, labels, colormap='gist_ncar'):
-    tsne = TSNEVisualizer(colormap)
+    tsne = TSNEVisualizer(colormap=colormap)
     tsne.fit(X, labels)
     tsne.show()
