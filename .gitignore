@@ -15,6 +15,11 @@ locations temp data/
 # Byte-compiled / optimized / DLL files
 utils/preprocess/__pycache__/
 utils/preprocess/.idea/
+utils/clustering/.idea/
+utils/embedding/.idea/
+utils/preprocess/.idea/*
+utils/clustering/.idea/*
+utils/embedding/.idea/*
 *.py[cod]
 *$py.class
 
