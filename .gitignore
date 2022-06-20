@@ -3,6 +3,9 @@ data/
 locations temp data/
 *.pkl
 *.csv
+*.tsv
+*.txt
+*.xlsx
 
 # Models and other pretrained files
 *.model
@@ -15,6 +18,13 @@ locations temp data/
 # Byte-compiled / optimized / DLL files
 utils/preprocess/__pycache__/
 utils/preprocess/.idea/
+utils/clustering/.idea/
+utils/embedding/.idea/
+utils/topic_modeling/.idea/
+utils/preprocess/.idea/*
+utils/clustering/.idea/*
+utils/embedding/.idea/*
+utils/topic_modeling/.idea/*
 *.py[cod]
 *$py.class
 
