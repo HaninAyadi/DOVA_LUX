@@ -8,6 +8,9 @@ Inspired by https://github.com/s/preprocessor/tree/master/preprocessor
 
 
 - 24/08/2018 : Added Emotion terms
+
+Editor: Hanin Ayadi
+Last editing date: 21/07/2022
 """
 
 import re

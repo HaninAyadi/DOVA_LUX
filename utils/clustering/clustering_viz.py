@@ -1,12 +1,7 @@
 """
-Definitions of basic visualization methods
-
-Author: Hanin Ayadi
-Creation date: 15/06/2022
-
-Inspired by
-
+Definitions of visualization methods
 """
+
 from wordcloud import WordCloud
 from yellowbrick.text import TSNEVisualizer
 import matplotlib.pyplot as plt
@@ -14,7 +9,6 @@ import matplotlib.pyplot as plt
 plt.rcParams["figure.figsize"] = (15, 10)
 plt.rcParams["legend.fontsize"] = 15
 plt.rcParams["axes.titlesize"] = 15
-
 
 
 def create_wordcloud(data, title=None):
@@ -31,7 +25,6 @@ def create_wordcloud(data, title=None):
 
 
 def tsne_viz(X, labels, colors=None, colormap='gist_ncar'):
-
     if colors == None:
         tsne = TSNEVisualizer(colormap=colormap)
     else:
