@@ -5,24 +5,20 @@ Preprocessing functions
 Author: Adrian Ahne
 Creation date: 24/04/2018
 
+Editor: Hanin Ayadi
+Last editing date: 21/07/2022
+
 """
 import string
 import unicodedata
 
-import re
 import sys
-import contractions  # expanding contractions
+from abc import abstractmethod
+
 import inflect  # natural language related tasks of generating plurals, singular nouns, etc.
-import nltk
-from nltk import word_tokenize
 from nltk.tokenize import TweetTokenizer
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
 import numpy as np
 
-from emotion_codes import UNICODE_EMOJI
-from emotion_codes import EMOTICONS
-from emotion_codes import EMOJI_TO_CATEGORY
 from defines import *
 from contractions_def import *
 
@@ -53,11 +49,11 @@ class Preprocess:
         self.WN_Lemmatizer_EN = WordNetLemmatizer()
         self.lang = lang
 
-    def get_text(self, raw_tweet):
-        """ get text of tweet object in json format """
-        return raw_tweet["text"]
+    @abstractmethod
+    def get_text(self, raw_input):
+        pass
 
-    def replace_contractions(self, tweet):
+    def replace_contractions(self, text):
         """ Replace contractions in string of text
             Examples:
               "aren't": "are not",
@@ -73,26 +69,26 @@ class Preprocess:
         """
 
         if self.lang == "english":
-            return contractions_fix(tweet)
+            return contractions_fix(text)
         else:
-            return (tweet)
+            return text
 
-    def replace_hashtags_URL_USER(self, tweet, mode_URL="keep",
+    def replace_hashtags_URL_USER(self, text, mode_URL="keep",
                                   mode_Mentions="keep", mode_Hashtag="keep"):
         """
-            Function handling the preprocessing of the hashtags, User mentions
+            Function handling the preprocessing of the hashtags, Mentions
             and URL patterns
 
             Parameters
             -------------------------------------------------------
 
             mode_URL : ("replace", "delete")
-                       if "replace" : all url's in tweet are replaced with the value of Constants.URL
+                       if "replace" : all url's in the text are replaced with the value of Constants.URL
                        if "delete" : all url's are deleted
                        if "keep" : keep url
 
             mode_Mentions : ("replace", "delete", "screen_name")
-                       if "replace" : all user mentions in tweet are replaced
+                       if "replace" : all user mentions in the text are replaced
                                       with the value of Constants.USER
                        if "delete" : all user mentions are deleted
                        if "screen_name" : delete '@' of all user mentions
@@ -105,7 +101,7 @@ class Preprocess:
 
             Return
             -------------------------------------------------------------
-            List of preprocessed tweet tokens
+            List of preprocessed text tokens
 
             https://github.com/yogeshg/Twitter-Sentiment
 
@@ -118,46 +114,46 @@ class Preprocess:
 
         """
         if mode_URL == "replace":
-            tweet = Patterns.URL_PATTERN.sub(Constants.URL, tweet)
+            text = Patterns.URL_PATTERN.sub(Constants.URL, text)
         elif mode_URL == "delete":
-            tweet = Patterns.URL_PATTERN.sub("", tweet)
+            text = Patterns.URL_PATTERN.sub("", text)
         elif mode_URL == "keep":
-            tweet = tweet
+            text = text
         else:
             print("ERROR: mode_URL {} not defined!".format(mode_URL))
             exit()
 
         if mode_Mentions == "replace":
-            tweet = Patterns.MENTION_PATTERN.sub(Constants.USER, tweet)
+            text = Patterns.MENTION_PATTERN.sub(Constants.USER, text)
         elif mode_Mentions == "delete":
-            tweet = Patterns.MENTION_PATTERN.sub("", tweet)
+            text = Patterns.MENTION_PATTERN.sub("", text)
         elif mode_Mentions == "screen_name":
-            mentions = Patterns.MENTION_PATTERN.findall(tweet)
+            mentions = Patterns.MENTION_PATTERN.findall(text)
             for mention in mentions:
-                tweet = tweet.replace("@" + mention, mention)
+                text = text.replace("@" + mention, mention)
         elif mode_Mentions == "keep":
-            tweet = tweet
+            text = text
         else:
             print("ERROR: mode_Mentions {} not defined!".format(mode_Mentions))
             exit()
 
         if mode_Hashtag == "replace":
-            hashtags = Patterns.HASHTAG_PATTERN.findall(tweet)
+            hashtags = Patterns.HASHTAG_PATTERN.findall(text)
             for hashtag in hashtags:
-                tweet = tweet.replace("#" + hashtag, hashtag)
+                text = text.replace("#" + hashtag, hashtag)
         elif mode_Hashtag == "delete":
-            hashtags = Patterns.HASHTAG_PATTERN.findall(tweet)
+            hashtags = Patterns.HASHTAG_PATTERN.findall(text)
             for hashtag in hashtags:
-                tweet = tweet.replace("#" + hashtag, "")
+                text = text.replace("#" + hashtag, "")
         elif mode_Hashtag == "keep":
-            tweet = tweet
+            text = text
         else:
             print("ERROR: mode_Hashtag {} not defined!".format(mode_Hashtag))
             exit()
 
-        return tweet
+        return text
 
-    def replace_special_words(self, tweet):
+    def replace_special_words(self, text):
         """
             Replace special words
 
@@ -167,51 +163,46 @@ class Preprocess:
         """
 
         # replace long covid words
-        tweet = WordLists.LONGCOVID_WORDS.sub(Constants.LONGCOVID, tweet)
+        text = WordLists.LONGCOVID_WORDS.sub(Constants.LONGCOVID, text)
 
         # replace covid words
-        tweet = WordLists.COVID_WORDS.sub(Constants.COVID, tweet)
+        text = WordLists.COVID_WORDS.sub(Constants.COVID, text)
 
         # replace long term words
-        tweet = WordLists.LONGTERM_WORDS.sub(Constants.LONGTERM, tweet)
+        text = WordLists.LONGTERM_WORDS.sub(Constants.LONGTERM, text)
 
-        return tweet
+        return text
 
-    def remove_repeating_characters(self, tweet):
+    def remove_repeating_characters(self, text):
         """
             If a word contains repeating characters, reduce it to only two repeating characters
             Ex. "coooooool" => "cool"
         """
-        return re.sub(r'(.)\1+', r'\1\1', tweet)
+        return re.sub(r'(.)\1+', r'\1\1', text)
 
-    def remove_repeating_words(self, tweet):
+    def remove_repeating_words(self, text):
         """
             Remove repeating words and only keep one
             Ex.: "I so need need need to sing" => "I so need to sing"
         """
-        return re.sub(r'\b(\w+)( \1\b)+', r'\1', tweet)
+        return re.sub(r'\b(\w+)( \1\b)+', r'\1', text)
 
-    def tokenize(self, tweet):
+    def tokenize(self, text):
         """
-            Tokenizes tweet in its single components (words, emojis, emoticons)
+            Tokenizes text in its single components (words, emojis, emoticons)
 
             Ex.:
             s = "I love:D python 😄 :-)"
             print(tokenize(s))
             >> ['I', 'love', ':D', 'python', '😄', ':-)']
         """
-        return list(self.TweetTokenizer.tokenize(tweet))
+        return list(self.TweetTokenizer.tokenize(text))
 
-    def remove_punctuation(self, tweet):
+    def remove_punctuation(self, text):
         """
             Remove punctuations from list of tokenized words
 
             Punctuations: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~...…
-
-            Example:
-            >>> text = ['hallo', '!', 'you', '...', 'going', 'reducing', ',']
-            >>> remove_punctuation(text)
-            >>> ['hallo', 'you', 'going', 'reducing']
 
             TODO: check if !,? may contain useful information
         """
@@ -219,27 +210,22 @@ class Preprocess:
         def check_punctuation(word):
             return word not in string.punctuation and word not in ['...', '…', '..', "\n", "\t", " ", ""]
 
-        return [word for word in tweet if check_punctuation(word)]
+        return [word for word in text if check_punctuation(word)]
 
-    def preprocess_emojis(self, tweet, limit_nEmojis=False):
+    def preprocess_emojis(self, text, limit_nEmojis=False):
         '''
             Replace emojis with their emotion category
-            Example:
-                >>> text = "I love eating 😄"
-                >>> preprocess_emoji(text)
-                >>> "I love eating EMOT_LAUGH"
-
 
             Parameters:
             ------------------------------------------------------------
-            tweet:          tokenized tweet
+            text:          tokenized text
             limit_nEmojis:  give maximum number of emojis of the same emotion category
-                            that should occur in a tweet. Delete the other ones
+                            that should occur in a text. Delete the other ones
                             Default: False, all emojis are considered
 
             Return
             ---------------------------------------------------------------
-            tokenized tweet with replaced emojis by their emotion category
+            tokenized text with replaced emojis by their emotion category
         '''
 
         if self.lang == "english":
@@ -249,8 +235,8 @@ class Preprocess:
             for emotion in Emotions.EMOTION_CATEGORIES:
                 emot_counter[emotion] = 0
 
-            cleaned_tweet = []
-            for ind, char in enumerate(tweet):
+            clean_text = []
+            for ind, char in enumerate(text):
                 if char in UNICODE_EMOJI:
 
                     emot_cat = EMOJI_TO_CATEGORY[UNICODE_EMOJI[char]]
@@ -262,104 +248,86 @@ class Preprocess:
                             # different categories, for instance: 'EMOT_SURPRISE EMOT_FEAR'
                             emot_cat = emot_cat.split(" ")
                             for emo in emot_cat:
-                                emot_counter[emo] += 1  # counts for the emotion in this tweet
+                                emot_counter[emo] += 1  # counts for the emotion in this text
                                 if emot_counter[emo] <= limit_nEmojis:
-                                    cleaned_tweet.append(emo)
+                                    clean_text.append(emo)
                         else:
-                            cleaned_tweet.append(emot_cat)
+                            clean_text.append(emot_cat)
 
                     else:
                         print("INFO: No category set for emoji {} -> delete emoji {}".format(char, UNICODE_EMOJI[char]))
                 else:
-                    cleaned_tweet.append(char)
+                    clean_text.append(char)
 
-            return cleaned_tweet
+            return clean_text
 
         # other language
         else:
-            return (tweet)
+            return (text)
 
-    def preprocess_emoticons(self, tweet):
+    def preprocess_emoticons(self, text):
         '''
-            Replace emoticons in tweets with their emotion category by searching for
+            Replace emoticons in text with their emotion category by searching for
             emoticons with the pattern key word
-
-            Example:
-                >>> text = "I like nutella :)"
-                >>> preprocess_emoticons(text)
-                >>> "I like nutella EMOT_SMILE"
         '''
 
         if self.lang == "english":
-            cleaned_tweet = []
-            for word in tweet:
+            clean_text = []
+            for word in text:
                 match_emoticon = Patterns.EMOTICONS_PATTERN.findall(word)
                 if not match_emoticon:  # if no emoticon found
-                    cleaned_tweet.append(word)
+                    clean_text.append(word)
                 else:
                     if match_emoticon[0] is not ':':
                         if match_emoticon[0] is not word:
-                            cleaned_tweet.append(word)
+                            clean_text.append(word)
                         else:
                             try:
-                                cleaned_tweet.append(EMOTICONS[word])
+                                clean_text.append(EMOTICONS[word])
                             except:
                                 print("INFO: Could not replace emoticon: {} of the word: {}".format(match_emoticon[0],
                                                                                                     word),
                                       sys.exc_info())
-            return cleaned_tweet
+            return clean_text
 
         # other languages
         else:
-            return tweet
+            return text
 
-    def to_lowercase(self, tweet):
+    def to_lowercase(self, text):
         """
             Convert all characters to lowercase from list of tokenized words
-
-            Example:
-                >>> text = ["I", "like", "Nutella", "URL"]
-                >>> to_lowercase(text)
-                >>> ["i", "like", "nutella", "URL"]
-
             Remark: Do it after emotion treatment, otherwise smiley :D -> :d
         """
 
-        return [word.lower() if word not in self.Constant_words else word for word in tweet]
+        return [word.lower() if word not in self.Constant_words else word for word in text]
 
-    def remove_non_ascii(self, tweet):
+    def remove_non_ascii(self, text):
         """Remove non-ASCII characters from list of tokenized words"""
 
         return [unicodedata.normalize('NFKD', word).encode('ascii', 'ignore').decode('utf-8', 'ignore') \
-                for word in tweet if
+                for word in text if
                 unicodedata.normalize('NFKD', word).encode('ascii', 'ignore').decode('utf-8', 'ignore') is not ""]
 
-    def replace_numbers(self, tweet, mode="replace"):
+    def replace_numbers(self, text, mode="replace"):
         """
             Replace all interger occurrences in list of tokenized words with textual representation
-
-            Example:
-            >>> text = ['June', '2017', 'McDougall', '10', 'Day']
-            >>> replace_numbers(text)
-            >>> ['June', 'two thousand and seventeen', 'McDougall', 'ten', 'Day']
-
-            REMARK: Maybe better to delete numbers of leave them as string: '2017'
         """
 
         if mode == "replace":
             p = inflect.engine()
-            return [p.number_to_words(word) if word.isdigit() else word for word in tweet]
+            return [p.number_to_words(word) if word.isdigit() else word for word in text]
 
         elif mode == "delete":
-            return [word for word in tweet if not word.isdigit()]
+            return [word for word in text if not word.isdigit()]
 
-    def remove_stopwords(self, tweet, include_personal_words=False, include_negations=False,
+    def remove_stopwords(self, text, include_personal_words=False, include_negations=False,
                          list_stopwords_manual=[]):
         """
             Remove stop words from list of tokenized words
 
             Parameter:
-                tweet : tokenised list of strings
+                text : tokenized list of strings
                 include_personal_words : [True, False]
                                         if True, personal stopwords like
                                         "I", "me", "my" are not considered as
@@ -371,59 +339,52 @@ class Preprocess:
 
                 list_stopwords_manual : list with stopwords that overwrites the default stop lists if given
 
-
-            Example:
-            >>> text = ['five', 'reasons', 'to', 'eat', 'like', 'a', 'hunter']
-            >>> remove_stopwords(text)
-            >>> ['five', 'reasons', 'eat', 'like', 'hunter']
         """
 
-        new_tweet = []
+        new_text = []
 
         # manual list of stopwords provided
         if len(list_stopwords_manual) > 0:
-            return [word for word in tweet if word not in list_stopwords_manual]
+            return [word for word in text if word not in list_stopwords_manual]
 
         else:
             # english language
             if self.lang == "english":
 
-                for word in tweet:
+                for word in text:
 
                     if include_personal_words:
                         if include_negations:
-                            if (word not in Grammar.STOPWORDS_NO_PERSONAL_EN and word not in Grammar.STOPWORDS_CUSTOM) or word in Grammar.WHITELIST_EN:
-                                new_tweet.append(word)
+                            if (
+                                    word not in Grammar.STOPWORDS_NO_PERSONAL_EN and word not in Grammar.STOPWORDS_CUSTOM) or word in Grammar.WHITELIST_EN:
+                                new_text.append(word)
                         else:
                             if word not in Grammar.STOPWORDS_NO_PERSONAL_EN and word not in Grammar.STOPWORDS_CUSTOM:
-                                new_tweet.append(word)
+                                new_text.append(word)
                     else:
                         if include_negations:
-                            if (word not in Grammar.STOPWORDS_EN and word not in Grammar.STOPWORDS_CUSTOM) or word in Grammar.WHITELIST_EN:
-                                new_tweet.append(word)
+                            if (
+                                    word not in Grammar.STOPWORDS_EN and word not in Grammar.STOPWORDS_CUSTOM) or word in Grammar.WHITELIST_EN:
+                                new_text.append(word)
                         else:
                             if word not in Grammar.STOPWORDS_EN and word not in Grammar.STOPWORDS_CUSTOM:
-                                new_tweet.append(word)
-                return new_tweet
+                                new_text.append(word)
+                return new_text
 
             # french language
             elif self.lang == "french":
-                for word in tweet:
+                for word in text:
                     if word not in Grammar.STOPWORDS_FR:
-                        new_tweet.append(word)
-                return new_tweet
+                        new_text.append(word)
+                return new_text
 
             # other languages
             else:
-                return tweet
+                return text
 
-    def lemmatize_verbs(self, tweet):
+    def lemmatize_verbs(self, text):
+
         """ Lemmatize verbs in list of tokenized words
-
-            Example:
-            >>> text = ['americans', 'stopped', 'drinking']
-            >>> lemmatize_verbs(text)
-            >>> ['americans', 'stop', 'drink']
         """
 
         # Lemmatization
@@ -437,29 +398,24 @@ class Preprocess:
         if self.lang == "english":
 
             # Part-of-speech tagging
-            pos_tags = nltk.pos_tag(tweet)
+            pos_tags = nltk.pos_tag(text)
 
             return [self.WN_Lemmatizer_EN.lemmatize(word, lookup_pos(pos)) for (word, pos) in pos_tags]
 
         else:
-            return tweet
+            return text
 
-    def stem_words(self, tweet, stemmer=False):
+    def stem_words(self, text, stemmer=False):
         """ Stem words in list of tokenized words
 
             Parameter:
-                - tweet :   tokenized list of words of the tweet
+                - text :   tokenized list of words of the text
 
                 - stemmer : algorithm to use for stemming, options:
                             - Grammar.STEMMER_SNOWBALL_EN
                             - Grammar.PORTER
                             - Grammar.STEMMER_LANCASTER
                             - Grammar.STEMMER_SNOWBALL_FR
-
-            Example:
-            >>> text = ['predictive', 'tool', 'for', 'children', 'with', 'diabetes']
-            >>> stem_words(text)
-            >>> ['predict', 'tool', 'for', 'children', 'diabet']
 
             Remark: Three major stemming algorithms
                 - Porter: most commonly used, oldest, most computationally expensive
@@ -470,13 +426,29 @@ class Preprocess:
                 - Snowball French
         """
 
-        for ind, word in enumerate(tweet):
+        for ind, word in enumerate(text):
             if word not in self.Constant_words:  # do not change words like USER, URL, EMOT_SMILE,...
                 if stemmer != False:
-                    tweet[ind] = stemmer.stem(word)
+                    text[ind] = stemmer.stem(word)
                 elif self.lang == "english":
-                    tweet[ind] = Grammar.STEMMER_SNOWBALL_EN.stem(word)
+                    text[ind] = Grammar.STEMMER_SNOWBALL_EN.stem(word)
                 elif self.lang == "french":
-                    tweet[ind] = Grammar.STEMMER_SNOWBALL_FR.stem(word)
+                    text[ind] = Grammar.STEMMER_SNOWBALL_FR.stem(word)
 
-        return tweet
+        return text
+
+
+class PreprocesTwitter(Preprocess):
+
+    # Overriding abstract method
+    def get_text(self, raw_input):
+        """ get text of text object in json format """
+        return raw_input["text"]
+
+
+class PreprocesReddit(Preprocess):
+
+    # Overriding abstract method
+    def get_text(self, raw_input):
+        """ get text of text object in json format """
+        return raw_input["fulltext"]

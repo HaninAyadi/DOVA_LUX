@@ -1,11 +1,5 @@
 """
 Definitions of basic kmeans clustering methods
-
-Author: Hanin Ayadi
-Creation date: 15/06/2022
-
-Inspired by
-
 """
 
 import matplotlib.pyplot as plt
@@ -37,17 +31,11 @@ def mbkmeans_clusters(X, y=None, k_range=10, mb=1000):
         for k in k_range:
             mbkm = MiniBatchKMeans(n_clusters=k, batch_size=mb, random_state=KMEANS_RANDOM_STATE)
             if y:
-                km = mbkm.fit(X, y)
+                km = mbkm.fit(X, sample_weight=y)
             else:
                 km = mbkm.fit(X)
             sum_of_squared_distance.append(km.inertia_)
             silhouette_values.append(silhouette_score(X, km.labels_))
-
-        plt.plot(k_range, sum_of_squared_distance, 'bx-')
-        plt.xlabel('k')
-        plt.ylabel('Sum of squared distance')
-        plt.title('Elbow Method for optimal clusters')
-        plt.show()
 
         plt.plot(k_range, silhouette_values, 'bx-')
         plt.xlabel('k')
@@ -59,13 +47,13 @@ def mbkmeans_clusters(X, y=None, k_range=10, mb=1000):
 
         mbkm = MiniBatchKMeans(n_clusters=k_range, batch_size=mb, random_state=KMEANS_RANDOM_STATE)
         if y:
-            km = mbkm.fit(X, y)
+            km = mbkm.fit(X, sample_weight=y)
         else:
             km = mbkm.fit(X)
         print('Silhouette score:')
         print(silhouette_score(X, km.labels_))
 
-    return km, km.labels_
+        return km, km.labels_
 
 
 def plot_elbow(X, y=None, k_range=range(2, 10)):
@@ -78,8 +66,11 @@ def plot_elbow(X, y=None, k_range=range(2, 10)):
 
        """
     model = KMeans(random_state=KMEANS_RANDOM_STATE)
-    visualizer = KElbowVisualizer(model, k=k_range)
+    visualizer = KElbowVisualizer(model, k=k_range, timings=False)
     if y:
         visualizer.fit(X, y)
     else:
         visualizer.fit(X)
+    visualizer.finalize()
+    print("Optimal Value of K: " + str(visualizer.elbow_value_))
+    print("Corresponding Distortion Score: " + str(visualizer.elbow_score_))
