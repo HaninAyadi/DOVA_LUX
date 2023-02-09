@@ -1,4 +1,5 @@
-# Folder Overview
+# Folder Overview (in the chronological order of the execution)
+
 
 ## data_collection.ipynb
 Collection of posts (without the comments) from the different subreddits using the Pushshift API
